@@ -1,0 +1,6 @@
+How does the Python to Prolog interface work for the dialog engine?
+What has being used successfully for inference and planning tasks on restricted domain?
+What is the Stanford parser started as?
+What is the dialog engine responsible for?
+What are deep learning systems very good at?
+What do we reorganize dependency graphs to focus on?

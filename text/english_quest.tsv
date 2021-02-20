@@ -1,0 +1,5 @@
+what	PRONobjVERB	like	0
+do	AUXauxVERB	like	0
+Tom	PROPNnsubjVERB	like	0
+like	VERB_PREDICATE_OF	0	0
+?	PUNCTpunctVERB	like	0

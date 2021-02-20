@@ -1,0 +1,3 @@
+include ./requirements.txt
+include ./sumbert/*.py
+include ./tests.py
