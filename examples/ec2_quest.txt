@@ -1,0 +1,6 @@
+What requests use the HTTP verbs GET or POST?
+What should I do after I remove the resources?
+What do KEY and SALT values provide?
+How are security updates provided?
+What is important to avoid during the boot process?
+What is essential to good server administration?

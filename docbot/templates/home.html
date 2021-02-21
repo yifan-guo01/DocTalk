@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+  <title>Pytalk Dialog Agent</title>
+  <head>
+    <link
+      href="https://github.com/ptarau/pytalk"
+    />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <style>
+
+      body {
+        font-family: monospace;
+         <!-- background-image:url('/static/home.jpg');
+         background-size: cover; -->
+      }
+      h1 {
+        background-color: blue;
+        display: inline-block;
+        font-size: 3em;
+        margin: 0;
+        padding: 14px;
+      }
+      h3 {
+        color: black;
+        font-size: 20px;
+        margin-top: 3px;
+        text-align: center;
+      }
+      #chatbox {
+        margin-left: auto;
+        margin-right: auto;
+        width: 100%;
+        margin-top: 60px;
+      }
+      #userInput {
+        margin-left: auto;
+        margin-right: auto;
+        width: 70%;
+        margin-top: 60px;
+      }
+      #textInput {
+        width: 100%;
+        border: none;
+        border-bottom: 3px solid black;
+        font-family: monospace;
+        font-size: 17px;
+      }
+      .userText {
+        color: white;
+        font-family: monospace;
+        font-size: 17px;
+        text-align: left;
+        line-height: 30px;
+      }
+      .userText span {
+        background-color: red;
+        padding: 10px;
+        border-radius: 2px;
+      }
+      .botText {
+        color: white;
+        font-family: monospace;
+        font-size: 17px;
+        text-align: left;
+        line-height: 30px;
+      }
+      .botText span {
+        background-color: blue;
+        padding: 10px;
+        border-radius: 2px;
+      }
+      #tidbit {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 300px;
+      }
+      .boxed {
+        margin-left: auto;
+        margin-right: auto;
+        width: 90%;
+        margin-top: 60px;
+        border: 1px solid black;
+      }
+      .box {
+        border: 2px solid black;
+      }
+    </style>
+  </head>
+  <body>
+
+    <center>
+      <p>
+       <h2>Doctalk: Question Answering about Documents</h2>
+      </p>
+      <h4>
+      <p>
+          Type your query in the "Question?" box like in:
+          <h3>
+          <p> document_name : query ? </p>
+          </h3>
+          to chat about one of the following documents:
+          covid,
+          <a href = "https://plato.stanford.edu/entries/peirce/" target="_blank">peirce</a>,
+          <a href = "https://www.poemuseum.org/the-masque-of-the-red-death" target="_blank">red</a>,
+          <a href = "https://www.archives.gov/founding-docs/constitution-transcript" target="_blank">const</a>,
+          <a href = "https://www.tesla.com/sites/default/files/model_3_owners_manual_north_america_en.pdf" target="_blank">tesla</a>,
+          <a href = "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-ug.pdf" target="_blank">ec2</a>,
+          einstein,
+          <a href = "http://www.gutenberg.org/files/5001/5001-h/5001-h.htm" target="_blank">relativity</a>,
+          <a href = "https://www.faa.gov/regulations_policies/handbooks_manuals/aviation/media/faa-h-8083-4.pdf" target="_blank">heli</a>,
+          <a href = "https://blog.wolfram.com/2020/04/14/finally-we-may-have-a-path-to-the-fundamental-theory-of-physics-and-its-beautiful/" target="_blank">wolfram</a>,
+          <a href = "https://link.springer.com/chapter/10.1007/978-3-030-39197-3_1" target="_blank">logrank</a>,
+          geo,
+          <a href = "https://www.poetryfoundation.org/poems/47311/the-waste-land" target="_blank">wasteland</a>,
+          <a href = "https://www.theonion.com/heaven-less-opulent-than-vatican-reports-disappointed-1819567798" target="_blank">heaven</a>,
+          bfr,
+          <a href = "http://www.gutenberg.org/files/11/11-0.txt" target="_blank">alice</a>
+          hindenburg,
+          <a href = "https://www.google.com/books/edition/_/ZJVLCAAAQBAJ?hl=en" target="_blank">toxi</a>,
+          <a href = "http://www.gutenberg.org/ebooks/7849" target="_blank">kafka</a> .
+          The documents, covering multiple writing styles,
+          are from a dozen pages to more than 500, and it might take a few seconds to wake up the longer ones.
+       </p>
+       <p>
+       Type document_name : summary? or document_name : keywords? in the "Question?" box for seeing those.
+      </p>
+      </h4>
+    </center>
+    <h3>
+      <p>
+        For  more, check out the home page of the
+        <a href="https://github.com/ptarau/pytalk">DocTalk Dialog Agent</a>!
+      </p>
+    </h3>
+    <div class="box"></div>
+    <div class="boxed">
+      <div>
+        <div id="chatbox">
+          <p class="botText">
+            <span> Hello! </span>
+          </p>
+        </div>
+        <div id="userInput">
+          <input id="textInput" type="text" name="msg" placeholder="Question?" />
+        </div>
+      </div>
+      <script>
+        var doc_name="logrank"
+        function getBotResponse() {
+          var rawText = $("#textInput").val();
+          var userHtml = '<p class="userText"><span>' + rawText + "</span></p>";
+          $("#textInput").val("");
+          $("#chatbox").append(userHtml);
+          document
+            .getElementById("userInput")
+            .scrollIntoView({ block: "start", behavior: "smooth" });
+          $.get("/get", { msg: rawText }).done(function(data) {
+            var botHtml = '<p class="botText"><span>' + data + "</span></p>";
+            $("#chatbox").append(botHtml);
+            document
+              .getElementById("userInput")
+              .scrollIntoView({ block: "start", behavior: "smooth" });
+          });
+        }
+        $("#textInput").keypress(function(e) {
+          if (e.which == 13) {
+            getBotResponse();
+          }
+        });
+      </script>
+    </div>
+  </body>
+</html>
