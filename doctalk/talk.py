@@ -11,14 +11,15 @@ import os
 #from pprint import pprint
 import json
 
-from .stanza_nlp import ttest
+import langid
+from .stanza_nlp import *
 
 from .nlp import *
 from .sim import *
 from .refiner import refine, ask_bert
 from .vis import pshow,gshow
 
-client = NLPclient()
+client=None
 
 def my_path() :
   '''
@@ -128,11 +129,35 @@ def get_quests(qs) :
       qs = list(l.strip() for l in f)
   return qs
 
+
+
+def extract_from_stanza(from_file=None, from_text=None) :
+  def file2text(fname) :
+    with open(fname,'r') as f:
+      return f.read()
+  if from_file:
+    text = file2text(from_file)
+  if from_text:
+    text = from_text
+  if len(text) > 200: 
+    short = text[ :200]
+  else:
+     short = text
+  lang = langid.classify(short)
+  print('lang:', lang[0])
+  global client
+  client=stanzaNLPClient(lang[0]) # initializes the NLP class with a certain language
+  client.from_text(text) #runs stanza nlp on the file and stores the result in self.doc
+  return client.map2db()
+
+
 def digest(text) :
   ''' process text with the NLP toolkit'''
   l2occ = defaultdict(list)
   sent_data=[]
   # calls server here
+  global client
+  client = NLPclient()  
   for i,xss in enumerate(client.extract(text)) :
     lexs,deps,ies=xss
     sent,lemma,tag,ner=[],[],[],[]
@@ -169,9 +194,9 @@ def rel_from(d):
       for u in range(*ux):
         yield lemma[u],tag[u]
   def lems(xs) : return tuple(x[0] for x in xs)
-  rs,svos=set(),set()
+  rs,svos=set(),set()  
   for ts in d[IE] :
-    for t in ts :
+    for t in ts :      
       sx, vx, ox = t
       lemma = d[LEMMA]
       tag=d[TAG]
@@ -325,6 +350,60 @@ def e2rel(e) :
   '''turns NER tags into common words'''
   if e=='MISC' : return 'entity'
   return e.lower()
+
+
+def answer_quest_nonenglish(q,talker) :
+  '''
+  given question q, interacts with talker and returns
+  its best answers
+  '''
+  max_answers = talker.params.max_answers
+  db = talker.db
+  sent_data, l2occ = db
+  matches = defaultdict(set)
+  
+  q_lemmas=[]
+  answerer = Talker(from_text=q)
+  q_sent_data,_=answerer.db
+  for j, q_lemma in enumerate(q_sent_data[0][LEMMA]):
+    q_sent_data, q_l2occ = answerer.db
+    q_tag = q_sent_data[0][TAG][j]
+    if q_tag not in ['NOUN','PROPN', 'VERB', 'ADJ'] : continue  # ppp(q_lemma,q_tag)
+    q_lemmas.append((q_lemma, q_tag))
+
+    #  actual QA starts here
+    ys = l2occ.get(q_lemma)
+    if ys:
+      for sent, _pos in ys:
+        matches[sent].add(q_lemma)
+
+
+  best = []
+  ''' crash
+  d = {x: r for x, r in answerer.pr.items()}
+  print('answer_quest_nonenglish, d:\n', d)
+  talker.pr = nx.pagerank(talker.g, personalization=d)
+  '''
+
+  for (id, shared) in matches.items():
+    sent = sent_data[id][SENT]
+    r = answer_rank(id, shared, sent, talker, expanded=0)
+    # ppp(id,r,shared)
+    best.append((r, id, shared, sent))
+    # ppp('MATCH', id,shared, r)
+
+  best.sort(reverse=True)
+
+  answers = []
+  for i, b in enumerate(best):
+    if i >= max_answers: break
+    #ppp(i,b)
+    rank, id, shared, sent = b
+    answers.append((id, sent, round(rank, 4), shared))
+
+  return answers, answerer
+
+
 
 def answer_quest(q,talker) :
   '''
@@ -506,7 +585,13 @@ def interact(q,talker):
   talker.say(q)
   print('')
   ### answer is computed here ###
-  answers,answerer=answer_quest(q, talker)
+  print('talker.params.stanza_parsing:', talker.params.stanza_parsing, ',lang:', talker.client.lang)
+  if talker.params.stanza_parsing == True and talker.client.lang != 'en':
+    print('call answer_quest_nonenglish\n')
+    answers,answerer=answer_quest_nonenglish(q, talker)
+  else:
+    print('call answer_quest\n')
+    answers,answerer=answer_quest(q, talker)
   show_answers(talker,answers)
   talker.distill(q,answers,answerer)
 
@@ -548,11 +633,18 @@ class Talker :
        self.from_file=from_pdf+".txt"
        self.db = load(self.from_file, self.params.force)
     elif from_file:
-       self.db=ttest(from_file,'en','txt')
-       self.from_file=from_file
-       print("XXXXXXXXXXXXXXX")
+       self.from_file=from_file 
+       if params.stanza_parsing == True:
+         self.db=extract_from_stanza(from_file=from_file)
+         print("XXXXXXXXXXXXXXX")
+       else:
+         self.db=load(from_file,self.params.force)
+   
     elif from_text :
-      self.db=digest(from_text)
+      if params.stanza_parsing == True:
+        self.db=extract_from_stanza(from_text=from_text)
+      else :
+        self.db=digest(from_text)
     elif from_json :
       xs=json.loads(from_json)
       assert isinstance(xs,list) and len(xs)==1
@@ -561,15 +653,36 @@ class Talker :
     else :
       assert from_file or from_text or from_json
 
+    self.client = client
     self.avg_len = get_avg_len(self.db)
 
-    self.svos=self.to_svos()
+    if params.stanza_parsing == True:
+      self.svos=self.to_svos_stanza()
+    else:
+      self.svos=self.to_svos()
+  
     self.svo_graph=None
 
     self.g,self.pr=self.to_graph()
+    '''
+    size=self.g.number_of_edges()
+    nsize=self.g.number_of_nodes()
+    print('g node size:', nsize)
+    print('Nodes of graph: ')
+    print(self.g.nodes())
 
-    self.summary, self.keywords = \
-      self.extract_content(self.params.max_sum, self.params.max_keys)
+    print('g edge size:', size)
+    print("Edges of graph: ")
+    print(self.g.edges())     
+    print('self.pr:', self.pr)
+    '''
+    #ssun, need do keynouns in order to filter out no-important words
+    if params.stanza_parsing == True:
+      self.summary, self.keywords = \
+        self.extract_content_stanza(self.params.max_sum, self.params.max_keys)
+    else:
+      self.summary, self.keywords = \
+        self.extract_content(self.params.max_sum, self.params.max_keys)
     assert self.by_rank != None
 
   def get_summary(self):
@@ -706,6 +819,34 @@ class Talker :
     if ner=='O' : return None
     return ner
 
+  def extract_content_stanza(self,sk,wk):
+    sents,words=list(),list()
+    # ordering all by rank here
+    by_rank=rank_sort(self.pr)
+    self.by_rank = by_rank
+    print('extract_content_stanza, client:', client)
+    keyNouns = client.keynouns()
+    print('extract_content_stanza, get keynouns:\n', keyNouns)
+    # collect best by rank, but adjusting some
+    for i  in range(len(by_rank)):
+      x,r=by_rank[i]
+      if sk and isinstance(x,int) :
+        sk-=1
+        ws=self.db[0][x][SENT]
+        sents.append((r,x,ws))
+      elif wk and x in keyNouns: #and good_word(x) :
+        wk -= 1
+        words.append(x)
+
+    # ordering sentences by id, not rank here
+    sents.sort(key=lambda x: x[1])
+    #for sss in sents : ppp(sss)
+    summary=sents
+    return summary, words
+
+
+ 
+
   def extract_content(self,sk,wk):
     '''extracts summaries and keywords'''
 
@@ -804,6 +945,24 @@ class Talker :
       summary = xss
 
     return summary,list(clean_words)
+
+
+  def to_svos_stanza(self):
+    '''
+    returns SVO relations as a dict associating to each
+    SVO tuple the set of the sentences it comes from
+    '''
+    sent_data, l2occ = self.db
+    d = defaultdict(set)
+    for i, data in enumerate(sent_data):
+      svos = data[IE]
+      ners = ners_from(data)
+      for s, v, o in svos: #ok
+        d[(s, v, o)].add(i)
+      for x, e in ners: #ok
+        d[(e, 'has_instance', x)].add(i)
+
+    return d
 
   def to_svos(self):
     '''

@@ -7,6 +7,7 @@ trace=0
 
 class talk_params:
   def __init__(self,from_dict=None,from_json=None):
+    self.stanza_parsing = True  # if True, use stanza_nlp.py; if False, use nlp.py
     self.force = False # if True, forces erasure of pre-parsed .json files
     #self.chunk_size=2^15 # splits large dcouments into chunks to avoid parser overflows TODO
 
@@ -26,7 +27,7 @@ class talk_params:
     # 1 : abstractive BERT summarizer, with sumbert postprocessing
     # 2 : extractive BERT summarizer postprocessing
     # 3 : all of the above, concatenated
-
+    
     self.with_refiner = 0 # <==================
     # controls short answer snippets via bert_qa pipeline
     self.with_bert_qa = 0.1 # <================== should be higher - low just to debug
@@ -62,9 +63,9 @@ class talk_params:
 
     # visualization / verbosity control
 
-    self.show_pics = 2  # 1 : just generate files, 2: interactive
-    self.show_rels = 0  # display relations inferreed from text
-    self.to_prolog = 0 # generates Prolog facts
+    self.show_pics = 0  # 1 : just generate files, 2: interactive
+    self.show_rels = 1  # display relations inferreed from text
+    self.to_prolog = 1 # generates Prolog facts
 
     if from_json:
       jd = json.loads(from_json)
