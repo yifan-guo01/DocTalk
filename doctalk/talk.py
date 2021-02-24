@@ -676,7 +676,6 @@ class Talker :
     print(self.g.edges())     
     print('self.pr:', self.pr)
     '''
-    #ssun, need do keynouns in order to filter out no-important words
     if params.stanza_parsing == True:
       self.summary, self.keywords = \
         self.extract_content_stanza(self.params.max_sum, self.params.max_keys)

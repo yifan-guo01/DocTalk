@@ -17,7 +17,6 @@ class stanzaNLPClient :
   def keynouns(self):
     '''collects important nouns'''
     ns=set()
-    print('keynouns entered')
     for sent in self.doc.sentences:
       for x in sent.words:
         if self.keynoun(x) :
@@ -97,11 +96,6 @@ class stanzaNLPClient :
       d=(tuple(sent),tuple(lemma),tuple(tag),tuple(ner),tuple(deps),tuple(svos))
       sent_data.append(d)
   
-
-    print("sent_data")
-    print(sent_data)
-    print("l2occ")
-    print(l2occ)
     
     return sent_data, l2occ
   

@@ -64,7 +64,7 @@ class talk_params:
     # visualization / verbosity control
 
     self.show_pics = 0  # 1 : just generate files, 2: interactive
-    self.show_rels = 1  # display relations inferreed from text
+    self.show_rels = 0  # display relations inferreed from text
     self.to_prolog = 1 # generates Prolog facts
 
     if from_json:
