@@ -1272,8 +1272,6 @@ class Talker :
     txt=" ".join(ws)
 
     r = ask_bert(txt, q)
-    print("hello world")
-    print(f'Aasdf {r}')
 
     if not r :
       print('NO ANSWER from BERT.\n')
