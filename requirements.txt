@@ -9,3 +9,5 @@ bert-extractive-summarizer
 sumbert
 Flask
 waitress
+streamlit
+langid

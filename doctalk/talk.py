@@ -592,10 +592,12 @@ def interact(q,talker):
   else:
     print('call answer_quest\n')
     answers,answerer=answer_quest(q, talker)
-  show_answers(talker,answers)
-  talker.distill(q,answers,answerer)
+  sentences = show_answers(talker,answers)
+  shortened = talker.distill(q,answers,answerer)
+  return sentences, shortened
 
 def show_answers(talker,answers) :
+  results = []
   ''' prints out/says answers'''
   print('ANSWERS:\n')
   if not talker.params.with_refiner :
@@ -606,10 +608,12 @@ def show_answers(talker,answers) :
     if not talker.params.with_refiner :
        print(info,end=': ')
     talker.say(nice(sent))
+    results.append(nice(sent))
     if not talker.params.with_refiner:
       tprint('  ', shared, rank)
     print('')
   tprint('------END-------', '\n')
+  return results
 
 class Talker :
   '''
@@ -1268,6 +1272,8 @@ class Talker :
     txt=" ".join(ws)
 
     r = ask_bert(txt, q)
+    print("hello world")
+    print(f'Aasdf {r}')
 
     if not r :
       print('NO ANSWER from BERT.\n')
@@ -1279,13 +1285,14 @@ class Talker :
           ',tokens:', token_count,'\n')
 
     print("==============>BERT's SHORT ANSWER:\n",r+'\n')
+    return r
 
 
   def distill(self,q,answers,answerer):
     '''
     overridable answer distillation opertation
     '''
-    self.get_gist(q,answers)
+    return self.get_gist(q,answers)
 
 
   def say(self,what):
@@ -1297,11 +1304,15 @@ class Talker :
   def show_summary(self):
     ''' prints/says summary'''
     self.say('SUMMARY:')
+    summary = []
     for r,x,ws in self.get_summary() :
       if not self.params.with_refiner :
         print(x,end=': ')
       self.say(nice(ws))
+      summary.append(nice(ws))
       print('')
+    return summary
+
 
   def show_keywords(self):
     ''' prints keywords'''
