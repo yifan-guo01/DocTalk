@@ -1,21 +1,16 @@
 import langid
 import streamlit as st
-import csv
-import os
 from doctalk.talk import *
 
 
 def main():
-    #SUPPORTED_LANGUAGES = get_supported_langs('StanzaSupportedLanguages.csv')
     st.sidebar.title('DocTalk')
     msg = '''A Multilingual STANZA-based Summary and Keyword Extractor and Question-Answering \
     System using TextGraphs and Neural Networks'''
     st.sidebar.write(msg)
-    text_file = st.sidebar.file_uploader('Select a File', type=['txt','pdf'])
+    text_file = st.sidebar.file_uploader('Select a File', type=['txt', 'pdf'])
     talker = None
     title = None
-    #selected_lang = st.sidebar.selectbox('Language', tuple(SUPPORTED_LANGUAGES.keys()), index=17)
-    #lang = SUPPORTED_LANGUAGES[selected_lang]
 
     if text_file is not None:
         text = text_file.getvalue().decode("utf-8")
@@ -25,7 +20,7 @@ def main():
         if not title or title != text_file.name:
             talker = Talker(from_text=text)
             title = text_file.name
-            # talker.show_all()
+
         action = st.sidebar.selectbox("Choose an action", ["Summarize", "Ask a question"])
         if action == "Summarize":
             summarizer(talker)
@@ -41,6 +36,8 @@ def summarizer(talker):
     notice.empty()
     st.header("Summary")
     st.write('\n\n'.join(talker.show_summary()))
+    st.header("Keywords")
+    st.write(', '.join(talker.get_keys()))
 
 
 def answerer(talker, lang):
