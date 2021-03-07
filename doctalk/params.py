@@ -35,8 +35,8 @@ class talk_params:
     self.with_answerer=False # <== if False, it runs without calling corenlp parser for answerer
     # summary, and keyphrase set sizes
 
-    self.top_sum = 9 # default number of sentences in summary
-    self.top_keys = 10 # # default number of keyphrases
+    self.top_sum = 5 # default number of sentences in summary
+    self.top_keys = 8 # # default number of keyphrases
 
     # maximum values generated when passing sentences to BERT
     self.max_sum = self.top_sum*(self.top_sum-1)/2
