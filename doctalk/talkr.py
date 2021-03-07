@@ -709,7 +709,11 @@ class Talker :
     '''
     function  extracting highest ranked sentences as summary
     '''
-    yield from take(self.params.top_sum,self.summary)
+    sents = self.summary # sort by ID
+    sents.sort(key=lambda x: x[0], reverse=True) # sort by Rank
+    summary=sents[ :self.params.top_sum]
+    summary.sort(key=lambda x: x[1])  # sort by ID
+    return summary
 
   def get_keys(self):
     '''
