@@ -1,6 +1,9 @@
 import langid
 import streamlit as st
 from doctalk.talk import *
+import os
+
+UPLOAD_DIRECTORY = "uploads"
 
 
 def main():
@@ -8,18 +11,23 @@ def main():
     msg = '''A Multilingual STANZA-based Summary and Keyword Extractor and Question-Answering \
     System using TextGraphs and Neural Networks'''
     st.sidebar.write(msg)
-    text_file = st.sidebar.file_uploader('Select a File', type=['txt', 'pdf'])
+    uploaded_file = st.sidebar.file_uploader('Select a File', type=['txt', 'pdf'])
     talker = None
     title = None
 
-    if text_file is not None:
-        text = text_file.getvalue().decode("utf-8")
+    if uploaded_file is not None:
+        print(f"New file uploaded: {uploaded_file.name}")
+        fpath = save_uploaded_file(uploaded_file)
+        if fpath[-4:] == '.pdf':
+            pdf2txt(fpath[:-4])
+        text = file2string(fpath[:-4] + '.txt')
+
         lang = langid.classify(text)[0]
         st.sidebar.write(f'Language: {lang}')
 
-        if not title or title != text_file.name:
+        if not title or title != uploaded_file.name:
             talker = Talker(from_text=text)
-            title = text_file.name
+            title = uploaded_file.name
 
         action = st.sidebar.selectbox("Choose an action", ["Summarize", "Ask a question"])
         if action == "Summarize":
@@ -52,6 +60,17 @@ def answerer(talker, lang):
             st.write(f"Short Answer: " + short_answer[:short_answer.rfind(',')])
         else:
             st.write('\n\n'.join(long_answers))
+
+
+def save_uploaded_file(uploaded_file, fname=None):
+    if not fname:
+        fname = uploaded_file.name
+    if not os.path.exists(UPLOAD_DIRECTORY):
+        os.makedirs(UPLOAD_DIRECTORY)
+    fpath = os.path.join(UPLOAD_DIRECTORY, fname)
+    with open(fpath, "wb") as f:
+        f.write(uploaded_file.getbuffer())
+    return fpath
 
 
 if __name__ == "__main__":
