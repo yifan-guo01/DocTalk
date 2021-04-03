@@ -446,7 +446,7 @@ def refine_wss(wss,talker):
 def sigmoid(x): return 1 / (1 + math.exp(-x))
 
 
-#Yifan
+
 import networkx.algorithms as nxAlg
 def answer_quest(q,talker) :
   '''
@@ -636,7 +636,7 @@ def query_with(talker,qs_or_fname)     :
 def interact(q,talker):
   ''' prints/says query and answers'''
   tprint('----- QUERY ----\n')
-  print("====yifan=======>QUESTION: ",end='')
+  print("===========>QUESTION: ",end='')
   talker.say(q)
   print('')
   ### answer is computed here ###
@@ -1249,7 +1249,7 @@ class Talker :
     r = ask_bert(txt, q)
 
     if not r :
-      print('=====yifan======>NO ANSWER from BERT.\n')
+      print('===========>NO ANSWER from BERT.\n')
       return
 
     print('\n==============>ASKING BERT WITH:\n',
@@ -1257,7 +1257,7 @@ class Talker :
           ', sentence lengths:', lens,
           ',tokens:', token_count,'\n')
 
-    print("======yifan=====>BERT's SHORT ANSWER:\n",r+'<======yifan=====\n')
+    print("===========>BERT's SHORT ANSWER:\n",r+'<===========\n')
 
 
   def distill(self,q,answers,answerer):

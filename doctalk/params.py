@@ -32,11 +32,15 @@ class talk_params:
     # controls short answer snippets via bert_qa pipeline
     self.with_bert_qa = 0.1 # <================== should be higher - low just to debug
 
+    self.thirdparty_model = 'facebook/bart-large-cnn' # <== summarization model
+                             # '' return pytalk summary by rank
+                             #   'facebook/bart-large-cnn',  send summary to facebook bart-large-cnn, get final answer from bart-large-cnn
+                             #   't5-large', send summary to google t5-large, get final answer from google t5-large
     self.with_answerer=False # <== if False, it runs without calling corenlp parser for answerer
     # summary, and keyphrase set sizes
 
-    self.top_sum = 5 # default number of sentences in summary
-    self.top_keys = 8 # # default number of keyphrases
+    self.top_sum = 40 # default number of sentences in summary, set default 40 if thirdparty_model is used, default 5 if thirdparty_model= ''
+    self.top_keys = 10 # # default number of keyphrases, set default 40 if thirdparty_model is used, default 8 if thirdparty_model= ''
 
     # maximum values generated when passing sentences to BERT
     self.max_sum = self.top_sum*(self.top_sum-1)/2
