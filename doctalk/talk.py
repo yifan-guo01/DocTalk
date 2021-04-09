@@ -710,7 +710,7 @@ class Talker :
     for i, sent in enumerate(summary):
       _,_, ws=sent
       willLen = lt + len(ws)
-      if willLen > 950:
+      if willLen > 850:
         summary = sents[ :i] 
         break
       lt += len(ws)
@@ -1549,6 +1549,7 @@ def pdf2txt(fname) :
   '''
     pdf to txt conversion with external tool - optional
     make sure you install "poppler tools" for this to work!
+    linux: yum install -y poppler-utils
   '''
   subprocess.run(["pdftotext", fname+".pdf"])
   clean_text_file(fname+".txt")

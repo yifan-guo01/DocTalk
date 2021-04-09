@@ -7,7 +7,7 @@ trace=0
 
 class talk_params:
   def __init__(self,from_dict=None,from_json=None):
-    self.stanza_parsing = True  # if True, use stanza_nlp.py; if False, use nlp.py
+    self.stanza_parsing = False  # if True, use stanza_nlp.py; if False, use nlp.py
     self.force = False # if True, forces erasure of pre-parsed .json files
     #self.chunk_size=2^15 # splits large dcouments into chunks to avoid parser overflows TODO
 
@@ -32,7 +32,7 @@ class talk_params:
     # controls short answer snippets via bert_qa pipeline
     self.with_bert_qa = 0.1 # <================== should be higher - low just to debug
 
-    self.thirdparty_model = 'facebook/bart-large-cnn' # <== summarization model
+    self.thirdparty_model = '' # <== summarization model
                              # '' return pytalk summary by rank
                              #   'facebook/bart-large-cnn',  send summary to facebook bart-large-cnn, get final answer from bart-large-cnn
                              #   't5-large', send summary to google t5-large, get final answer from google t5-large
