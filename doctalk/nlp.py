@@ -57,15 +57,22 @@ def cleaned(w) :
   if w in ['-RSB-', '-rsb-']: return ']'
   return w
 
+
+CoreNLPInstance = None
+
 class NLPclient:
   def __init__(self, core_nlp_version = '2018-10-05'):
     from stanza.server import CoreNLPClient
-    self.client = CoreNLPClient(annotators=['tokenize','ssplit','pos',
-    'lemma','ner','parse','coref'])
+
+    global CoreNLPInstance
+    if CoreNLPInstance is None:
+      CoreNLPInstance = CoreNLPClient(annotators=['tokenize','ssplit','pos',
+      'lemma','ner','parse','coref'], be_quiet=True)
+    self.client = CoreNLPInstance
 
   def __enter__(self): return self
   def __exit__(self, exc_type, exc_val, exc_tb): pass
-  def __del__(self): self.client.stop()
+  # def __del__(self): self.client.stop()
 
   def step(self,text) :
       core_nlp_output = self.client.annotate(text=text,
